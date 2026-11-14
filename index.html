@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b1440">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Super Noah</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚒</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" width="960" height="560"></canvas>
+
+  <!-- Während des Spiels -->
+  <div id="hud" class="hidden">
+    <button id="btnPause" class="iconbtn" aria-label="Pause">⏸</button>
+  </div>
+  <div id="touch" class="hidden">
+    <div class="tpad tleft">
+      <button data-act="left" aria-label="links">◀</button>
+      <button data-act="right" aria-label="rechts">▶</button>
+    </div>
+    <div class="tpad tright">
+      <button data-act="spray" class="spray" aria-label="spritzen">💦</button>
+      <button data-act="jump" class="jump" aria-label="springen">⬆</button>
+    </div>
+  </div>
+
+  <!-- Weltkarte -->
+  <div id="mapBar" class="hidden">
+    <div class="pill" id="mapName">Noah</div>
+    <div class="pill"><i class="coin"></i> <span id="mapCoins">0</span></div>
+    <div class="pill">⭐ <span id="mapStars">0</span>/<span id="mapStarsMax">54</span></div>
+    <div class="spacer"></div>
+    <button id="btnShop">👕 Kleiderschrank</button>
+    <button id="btnSaveMenu">💾 Spielstand</button>
+    <button id="btnMapSettings" class="iconbtn sm" aria-label="Einstellungen">⚙️</button>
+    <button id="btnHome" class="iconbtn sm" aria-label="Hauptmenü">🏠</button>
+  </div>
+  <button id="btnGo" class="hidden big go">▶ Los!</button>
+
+  <!-- Titel -->
+  <section id="scrTitle" class="screen">
+    <h1 class="logo"><span class="l1">SUPER</span><span class="l2">NOAH</span></h1>
+    <p class="tag">🦕 Dinos · 🚒 Feuerwehr · 🚀 Weltraum · ❄️ Eis · 🌊 Meer · 🤖 Roboter</p>
+    <button id="btnPlay" class="big">▶ Spielen</button>
+    <div class="row">
+      <button id="btnHelp">❓ Steuerung</button>
+      <button id="btnSettings">⚙️ Einstellungen</button>
+    </div>
+  </section>
+
+  <!-- Spielstände -->
+  <section id="scrSlots" class="screen hidden">
+    <div class="panel wide">
+      <h2>Wer spielt?</h2>
+      <div id="slotList" class="slots"></div>
+      <div class="row">
+        <button id="btnImport">📂 Spielstand importieren</button>
+        <button id="btnSlotsBack">← Zurück</button>
+      </div>
+      <p class="note">Spielstände werden automatisch in diesem Browser gespeichert. Mit 💾 kannst du einen Spielstand als Datei
+        (<code>.supernoah.json</code>) exportieren und auf einem anderen Computer wieder importieren.</p>
+    </div>
+  </section>
+
+  <!-- Spielstand-Menü auf der Karte -->
+  <section id="scrSaveMenu" class="screen hidden">
+    <div class="panel">
+      <h2>💾 Spielstand</h2>
+      <p id="saveInfo" class="center"></p>
+      <div class="col">
+        <button id="btnExportCur" class="big2">💾 Als Datei exportieren</button>
+        <button id="btnImport2" class="big2">📂 Datei importieren</button>
+        <button id="btnSwitch" class="big2">👥 Spieler wechseln</button>
+        <button id="btnSaveBack">← Zurück zur Karte</button>
+      </div>
+      <p class="note">Dein Fortschritt wird nach jedem Level automatisch im Browser gespeichert.
+        Exportiere ihn als Datei, um ihn zu sichern oder auf einen anderen Computer mitzunehmen.</p>
+    </div>
+  </section>
+
+  <!-- Kleiderschrank -->
+  <section id="scrShop" class="screen hidden">
+    <div class="panel wide">
+      <h2>👕 Kleiderschrank</h2>
+      <p class="center">Du hast <b><i class="coin"></i> <span id="shopCoins">0</span></b> Münzen</p>
+      <div id="shopList" class="shop"></div>
+      <div class="row"><button id="btnShopBack">← Zurück zur Karte</button></div>
+    </div>
+  </section>
+
+  <!-- Einstellungen -->
+  <section id="scrSettings" class="screen hidden">
+    <div class="panel">
+      <h2>⚙️ Einstellungen</h2>
+      <label class="toggle"><input type="checkbox" id="setSfx"><span>🔊 Geräusche</span></label>
+      <label class="toggle"><input type="checkbox" id="setMusic"><span>🎵 Musik</span></label>
+      <label class="toggle"><input type="checkbox" id="setSpeech"><span>🗣️ Vorlesen (Schilder und Tipps)</span></label>
+      <label class="toggle sel"><span>📱 Touch-Knöpfe</span>
+        <select id="setTouch"><option value="auto">Automatisch</option><option value="on">Immer an</option><option value="off">Aus</option></select>
+      </label>
+      <div class="row">
+        <button id="btnFull">⛶ Vollbild</button>
+        <button id="btnSetBack">← Zurück</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hilfe -->
+  <section id="scrHelp" class="screen hidden">
+    <div class="panel wide">
+      <h2>❓ So spielst du</h2>
+      <div class="help">
+        <div>
+          <h3>⌨️ Tastatur</h3>
+          <p><kbd>←</kbd> <kbd>→</kbd> laufen</p>
+          <p><kbd>Leertaste</kbd> oder <kbd>↑</kbd> springen<br><small>Länger drücken = höher springen</small></p>
+          <p><kbd>X</kbd> mit Wasser spritzen</p>
+          <p><kbd>P</kbd> oder <kbd>Esc</kbd> Pause</p>
+        </div>
+        <div>
+          <h3>📱 Tablet &amp; 🎮 Controller</h3>
+          <p>Auf dem Tablet erscheinen große Knöpfe: ◀ ▶ laufen, ⬆ springen, 💦 spritzen.</p>
+          <p>Ein Gamepad funktioniert auch: Steuerkreuz / Stick, A springen, X spritzen.</p>
+        </div>
+        <div>
+          <h3>⭐ Tipps</h3>
+          <p>In jedem Level gibt es 3 Schätze, zum Beispiel 🥚 Dino-Eier, 🐱 Kätzchen oder 🐧 Pinguin-Babys.</p>
+          <p>🌊 Im Meer schwimmst du: Springen gedrückt halten!</p>
+          <p>🪖 Der Helm schützt dich einmal. 💦 Mit der Spritze löschst du Feuer.</p>
+          <p>Mit Münzen kaufst du neue Kostüme im Kleiderschrank.</p>
+        </div>
+      </div>
+      <div class="row"><button id="btnHelpBack">← Zurück</button></div>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section id="scrPause" class="screen hidden dim">
+    <div class="panel">
+      <h2>⏸ Pause</h2>
+      <div class="col">
+        <button id="btnResume" class="big">▶ Weiter</button>
+        <button id="btnRestart" class="big2">↻ Level neu starten</button>
+        <button id="btnToMap" class="big2">🗺️ Zur Karte</button>
+        <div class="row">
+          <button id="btnPSound" class="iconbtn">🔊</button>
+          <button id="btnPMusic" class="iconbtn">🎵</button>
+          <button id="btnPSpeech" class="iconbtn">🗣️</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ergebnis -->
+  <section id="scrResults" class="screen hidden dim">
+    <div class="panel">
+      <h2 id="resTitle">Geschafft! 🎉</h2>
+      <div id="resStars" class="resstars"></div>
+      <div class="resline"><span><i class="coin"></i> Münzen</span><b id="resCoins">0</b></div>
+      <div class="resline"><span>⏱️ Zeit</span><b id="resTime">0:00</b></div>
+      <p id="resNote" class="center note2"></p>
+      <div class="row">
+        <button id="btnResAgain">↻ Nochmal</button>
+        <button id="btnResNext" class="big">Weiter ➜</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ende -->
+  <section id="scrEnding" class="screen hidden dim">
+    <div class="panel">
+      <h2>🏆 Du hast es geschafft! 🏆</h2>
+      <p class="center big-text">🦕 🚒 🚀 ❄️ 🌊 🤖</p>
+      <p class="center" id="endText"></p>
+      <div class="row"><button id="btnEndMap" class="big">🗺️ Zur Karte</button></div>
+    </div>
+  </section>
+
+  <!-- Dialog -->
+  <div id="modal" class="hidden">
+    <div class="panel">
+      <h3 id="modalTitle"></h3>
+      <p id="modalText" class="center"></p>
+      <input id="modalInput" type="text" maxlength="16" autocomplete="off" class="hidden">
+      <div id="modalBtns" class="row"></div>
+    </div>
+  </div>
+  <div id="toast" class="hidden"></div>
+  <div id="rotate"><div>📱↻</div><p>Bitte das Handy quer halten!</p></div>
+</div>
+<input type="file" id="fileInput" accept=".json,application/json" hidden>
+
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/save.js"></script>
+<script src="js/render.js"></script>
+<script src="js/render2.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
