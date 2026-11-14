@@ -219,7 +219,7 @@ const UI = (() => {
     Sfx.play('select');
     if (lastResult && lastResult.ending) {
       const s = Store.current();
-      $('endText').textContent = `Super ${s.name} hat alle sechs Welten gerettet und sogar den Mega-Roboter besiegt! Du hast ${Store.starCount(s)} von ${MAXSTARS} Schätzen gefunden.` +
+      $('endText').textContent = `Super ${s.name} hat alle neun Welten gerettet, den Drachen gezähmt und den Meister-Räuber gefangen! Du hast ${Store.starCount(s)} von ${MAXSTARS} Schätzen gefunden.` +
         (Store.starCount(s) < MAXSTARS ? ' Findest du auch noch die anderen?' : ' Wow, wirklich alle!');
       show('scrEnding');
       Sfx.music('map'); Sfx.play('win');

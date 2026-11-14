@@ -62,7 +62,7 @@ function drawBackground(c, theme, cam, t) {
   const g = c.createLinearGradient(0, 0, 0, VH);
   g.addColorStop(0, th.sky[0]); g.addColorStop(1, th.sky[1]);
   c.fillStyle = g; c.fillRect(0, 0, VW, VH);
-  ({ dino: bgDino, city: bgCity, space: bgSpace, ice: bgIce, sea: bgSea, robo: bgRobo }[theme] || bgSpace)(c, cam, t);
+  ({ dino: bgDino, city: bgCity, space: bgSpace, ice: bgIce, sea: bgSea, robo: bgRobo, knight: bgKnight, lab: bgLab, police: bgPolice }[theme] || bgSpace)(c, cam, t);
 }
 
 function hills(c, cam, p, base, amp, col, f1, f2) {
@@ -305,7 +305,7 @@ function drawLava(c, x, y, t, tx, theme) {
 }
 
 function drawGate(c, theme, x, y, t, ty) {
-  const col = { dino: '#6d5a4b', city: '#555c6b', space: '#3d2f7a', ice: '#5fa8d3', sea: '#3b5b6b', robo: '#4a5568' }[theme];
+  const col = { dino: '#6d5a4b', city: '#555c6b', space: '#3d2f7a', ice: '#5fa8d3', sea: '#3b5b6b', robo: '#4a5568', knight: '#6d6875', lab: '#90a4ae', police: '#37474f' }[theme];
   c.fillStyle = col; c.fillRect(x, y, T, T);
   c.fillStyle = 'rgba(0,0,0,0.25)'; c.fillRect(x + 6, y, 6, T); c.fillRect(x + 28, y, 6, T);
   const glow = 0.5 + 0.5 * Math.sin(t * 4 + ty);
@@ -342,8 +342,9 @@ function drawNoah(c, cx, by, o) {
   if (of.style === 'dino') { // Schwanz
     c.fillStyle = of.jacket; c.beginPath(); c.moveTo(-8, -20); c.quadraticCurveTo(-24, -14, -22, -6); c.lineTo(-8, -14); c.fill();
   }
-  if (power === 'hose') {
-    c.fillStyle = '#c62828'; rr(c, -18, -31, 9, 17, 4); c.fill();
+  const tool = o.tool || 'water';
+  if (power === 'hose' && (tool === 'water' || tool === 'foam' || tool === 'bubble')) {
+    c.fillStyle = tool === 'foam' ? '#2e7d32' : tool === 'bubble' ? '#0277bd' : '#c62828'; rr(c, -18, -31, 9, 17, 4); c.fill();
     c.fillStyle = '#e0e0e0'; c.fillRect(-17, -27, 7, 2.5); c.fillRect(-17, -21, 7, 2.5);
     c.strokeStyle = '#333'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(-12, -31); c.quadraticCurveTo(-6, -40, 4, -24); c.stroke();
   }
@@ -388,7 +389,9 @@ function drawNoah(c, cx, by, o) {
   }
 
   // vorderer Arm (mit Strahlrohr)
-  if (power === 'hose') {
+  if (power === 'hose' && (tool === 'sword' || tool === 'net')) {
+    drawToolArm(c, tool, o.swing || 0, arm);
+  } else if (power === 'hose') {
     arm(4, -27, -1.45);
     c.fillStyle = '#333'; rr(c, 14, -27, 11, 5, 2); c.fill();
     c.fillStyle = '#ffd54f'; c.fillRect(23, -28, 3, 7);
@@ -570,7 +573,8 @@ function drawItem(c, e, t) {
   drawPowerIcon(c, e.item, cx, cy, 1);
 }
 
-function drawPowerIcon(c, kind, cx, cy, s) {
+function drawPowerIcon(c, kind, cx, cy, s, theme) {
+  if (kind === 'hose' && drawToolIcon(c, theme || (G.lvl && G.lvl.theme), cx, cy, s)) return;
   c.save(); c.translate(cx, cy); c.scale(s, s);
   if (kind === 'helmet') {
     c.fillStyle = '#e3261f'; c.beginPath(); c.arc(0, 4, 13, Math.PI, 0); c.fill();
@@ -613,7 +617,7 @@ function drawCheck(c, e, theme, t) {
   c.fillStyle = '#795548'; rr(c, px - 6, by - 6, 16, 6, 2); c.fill();
   c.fillStyle = '#bdbdbd'; c.fillRect(px, by - 78, 4, 74);
   circle(c, px + 2, by - 80, 4, '#ffd54f');
-  const col = e.active ? ({ dino: '#43a047', city: '#e53935', space: '#7e57c2', ice: '#039be5', sea: '#ff7043', robo: '#f6ad55' }[theme]) : '#9e9e9e';
+  const col = e.active ? ({ dino: '#43a047', city: '#e53935', space: '#7e57c2', ice: '#039be5', sea: '#ff7043', robo: '#f6ad55', knight: '#8e24aa', lab: '#00bfa5', police: '#1e88e5' }[theme]) : '#9e9e9e';
   c.fillStyle = col; c.beginPath(); c.moveTo(px + 4, by - 76);
   for (let i = 0; i <= 8; i++) c.lineTo(px + 4 + i * 4, by - 76 + Math.sin(t * 6 + i * 0.7) * (e.active ? 3 : 1));
   for (let i = 8; i >= 0; i--) c.lineTo(px + 4 + i * 4, by - 52 + Math.sin(t * 6 + i * 0.7) * (e.active ? 3 : 1));
@@ -676,7 +680,7 @@ function drawGoal(c, e, theme, t, anim) {
       // Noah sitzt schon drin
       circle(c, x + 126, by - 64, 8, '#ffd3ad');
     }
-  } else if (theme === 'ice' || theme === 'sea') { drawGoalExtra(c, e, theme, t, anim, cx, by); } else {
+  } else if (['ice', 'sea', 'knight', 'lab', 'police'].includes(theme)) { drawGoalExtra(c, e, theme, t, anim, cx, by); } else {
     const lift = anim > 0.8 ? Math.pow(anim - 0.8, 2) * 300 : 0;
     const x = cx, y = by - lift;
     if (anim > 0.6) {

@@ -417,8 +417,8 @@ function drawBossExtra(c, e, t, flash, cx, by) {
 }
 
 /* ---------------- Weltkarte (6 Welten in zwei Reihen) ---------------- */
-const MAP_ROW_H = 242;
-const MAP_NODES = (() => {
+
+const MAP_NODES_OLD = (() => {
   const n = [];
   for (let w = 0; w < 6; w++) {
     const row = Math.floor(w / 3), col = row === 0 ? w : 5 - w;
@@ -477,7 +477,7 @@ function mapBand(c, w, t) {
   c.restore();
 }
 
-function drawMap(c, t, save, sel, tokenPos) {
+function drawMapOld(c, t, save, sel, tokenPos) {
   for (let w = 0; w < 6; w++) mapBand(c, w, t);
   // Weltnamen
   c.textAlign = 'center';

@@ -22,8 +22,21 @@ const OUTFITS = [
   { id: 'eis',       name: 'Eis-Noah',         price: 150, jacket: '#4fc3f7', pants: '#0288d1', stripe: '#ffffff', helmet: '#e1f5fe', boots: '#01579b', style: 'fire' },
   { id: 'taucher',   name: 'Taucher-Noah',     price: 200, jacket: '#fdd835', pants: '#263238', stripe: '#263238', helmet: '#fdd835', boots: '#263238', style: 'space' },
   { id: 'roboter',   name: 'Roboter-Noah',     price: 250, jacket: '#90a4ae', pants: '#546e7a', stripe: '#ff5252', helmet: '#b0bec5', boots: '#37474f', style: 'fire' },
-  { id: 'gold',      name: 'Gold-Noah',        price: 400, jacket: '#e2b100', pants: '#b98f0a', stripe: '#fff6b0', helmet: '#ffd700', boots: '#7a5c00', style: 'fire', sparkle: true },
+  { id: 'ritter',    name: 'Ritter-Noah',      price: 220, jacket: '#9e9e9e', pants: '#616161', stripe: '#7b1fa2', helmet: '#bdbdbd', boots: '#424242', style: 'fire' },
+  { id: 'forscher',  name: 'Forscher-Noah',    price: 260, jacket: '#fafafa', pants: '#455a64', stripe: '#00bfa5', helmet: '#00bfa5', boots: '#263238', style: 'space' },
+  { id: 'polizei',   name: 'Polizei-Noah',     price: 300, jacket: '#1e3a8a', pants: '#172554', stripe: '#e3e3e3', helmet: '#1e3a8a', boots: '#111', style: 'fire' },
+  { id: 'gold',      name: 'Gold-Noah',        price: 500, jacket: '#e2b100', pants: '#b98f0a', stripe: '#fff6b0', helmet: '#ffd700', boots: '#7a5c00', style: 'fire', sparkle: true },
 ];
+/* Werkzeug je Welt: Der Gegenstand aus der Kiste verwandelt sich passend zur Welt */
+const TOOL_BY_THEME = { knight: 'sword', lab: 'foam', police: 'net', sea: 'bubble' };
+const toolOf = theme => TOOL_BY_THEME[theme] || 'water';
+const TOOL_NAMES = {
+  water:  { mine: 'Deine Wasserspritze', a: 'eine Wasserspritze', the: 'Die Wasserspritze', hint: 'Halte X gedrückt zum Spritzen', hintTouch: 'Halte den blauen Knopf gedrückt zum Spritzen' },
+  bubble: { mine: 'Deine Blasen-Spritze', a: 'eine Blasen-Spritze', the: 'Die Blasen-Spritze', hint: 'Halte X gedrückt für Luftblasen', hintTouch: 'Halte den blauen Knopf gedrückt für Luftblasen' },
+  foam:   { mine: 'Deine Schaumspritze', a: 'eine Schaumspritze', the: 'Die Schaumspritze', hint: 'Halte X gedrückt zum Schäumen', hintTouch: 'Halte den blauen Knopf gedrückt zum Schäumen' },
+  sword:  { mine: 'Dein Schwert', a: 'ein Schwert', the: 'Das Schwert', hint: 'Drück X zum Schlagen', hintTouch: 'Drück den blauen Knopf zum Schlagen' },
+  net:    { mine: 'Dein Fangnetz', a: 'ein Fangnetz', the: 'Das Fangnetz', hint: 'Drück X, um Gauner einzufangen', hintTouch: 'Drück den blauen Knopf, um Gauner einzufangen' },
+};
 const OUTFIT_IDS = OUTFITS.map(o => o.id);
 const outfitById = id => OUTFITS.find(o => o.id === id) || OUTFITS[0];
 
@@ -34,6 +47,9 @@ const WORLDS = [
   { name: 'Eis-Land',         theme: 'ice',   collect: 'Pinguin-Babys', collect1: 'Pinguin-Baby', say: 'Pinguin-Baby gerettet!',    color: '#039be5' },
   { name: 'Tiefsee',          theme: 'sea',   collect: 'Perlen',        collect1: 'Perle',        say: 'Eine Perle!',               color: '#00838f' },
   { name: 'Roboter-Station',  theme: 'robo',  collect: 'Zahnräder',     collect1: 'Zahnrad',      say: 'Ein goldenes Zahnrad!',     color: '#f57c00' },
+  { name: 'Ritterburg',       theme: 'knight', collect: 'Kronen',       collect1: 'Krone',        say: 'Eine Königskrone!',         color: '#8e24aa' },
+  { name: 'Chemielabor',      theme: 'lab',   collect: 'Kristalle',     collect1: 'Kristall',     say: 'Ein Zauberkristall!',       color: '#00897b' },
+  { name: 'Polizei-Einsatz',  theme: 'police', collect: 'Juwelen',      collect1: 'Juwel',        say: 'Ein Juwel zurückgeholt!',   color: '#1e88e5' },
 ];
 
 /* ---------- Level-Baukasten ---------- */
@@ -619,6 +635,276 @@ const LEVELS = [
       L.ground(0, 22);
       L.sign(3, 11, 'Der Mega-Roboter schießt Blitze! Spring drüber und hüpf ihm viermal auf den Kopf.');
       L.blocks(8, 9, 'qhq');
+      L.walker(15, 11); L.laser(19, 2, 11, 0);
+      L.ground(26, 48);
+      L.conv(29, 38, 12, -1); L.flyer(34, 7);
+      L.plat(40, 9, 3); L.plat(44, 6, 3); L.star(45, 5);
+      L.mplat(49, 10, 2, { dx: 2 });
+      L.ground(53, 110);
+      L.check(55, 11);
+      L.blocks(59, 9, 'brb'); L.star(60, 5);
+      L.spiky(64, 11); L.urchin(68, 11);
+      L.check(72, 11);
+      L.boss(75, 98, 88, 11);
+      L.goal(103, 11);
+    }
+  },
+
+  /* ================= WELT 7: RITTERBURG ================= */
+  {
+    id: '7-1', world: 6, name: 'Auf zur Ritterburg', w: 170,
+    build(L) {
+      L.ground(0, 24);
+      L.sign(3, 11, 'Willkommen im Ritterland! In der goldenen Kiste wartet ein Schwert. {spray}!');
+      L.coins(6, 10, 4);
+      L.blocks(12, 8, 'bqbwb');
+      L.walker(21, 11);
+      L.lava(25, 26); L.coinArc(24, 9, 4);
+      L.ground(27, 46);
+      L.plat(31, 9, 4); L.coins(31, 8, 4);
+      L.walker(36, 11);
+      L.plat(37, 6, 3); L.star(38, 5);
+      L.spiky(42, 11);
+      L.ground(47, 51, 10); L.coins(47, 9, 5);
+      L.ground(52, 80);
+      L.check(55, 11);
+      L.flyer(60, 8); L.walker(65, 11); L.walker(69, 11);
+      L.spring(73, 11); L.plat(71, 4, 5); L.coins(71, 3, 4); L.star(75, 3);
+      L.lava(81, 88); L.mplat(82, 10, 3, { dx: 3 });
+      L.ground(89, 110);
+      L.check(91, 11);
+      L.urchin(96, 11); L.urchin(97, 11);
+      L.blocks(100, 9, 'qrq');
+      L.spiky(105, 11); L.flyer(108, 7);
+      L.stairs(111, 4); L.rect(115, 8, 2, 4);
+      L.lava(117, 119);
+      L.ground(120, 170);
+      L.walker(125, 11); L.walker(129, 11);
+      L.blocks(133, 9, 'gg'); L.plat(136, 6, 3); L.star(137, 5);
+      L.flyer(142, 7); L.spiky(147, 11);
+      L.goal(158, 11);
+    }
+  },
+  {
+    id: '7-2', world: 6, name: 'Steinschlag am Burgberg', w: 175,
+    build(L) {
+      L.ground(0, 22);
+      L.sign(3, 11, 'Vorsicht, Felsbrocken! Lauf weg von den roten Kreisen.');
+      L.blocks(8, 9, 'qwq');
+      L.meteors(12, 10);
+      L.walker(16, 11);
+      L.lava(23, 25); L.coinArc(22, 9, 5);
+      L.ground(26, 50);
+      L.ground(32, 37, 9); L.ground(38, 43, 7); L.star(40, 4);
+      L.walker(30, 11); L.spiky(46, 11);
+      L.flyer(44, 4);
+      L.lava(51, 54); L.mplat(51, 10, 2, { dx: 2 });
+      L.ground(55, 80);
+      L.check(57, 11);
+      L.meteors(60, 18);
+      L.blocks(63, 9, 'bqrqb');
+      L.walker(68, 11); L.walker(72, 11); L.urchin(76, 11);
+      L.ground(84, 100, 10);
+      L.flyer(90, 6); L.spiky(95, 9);
+      L.spring(98, 9); L.plat(96, 2, 4); L.star(98, 1);
+      L.ground(104, 130);
+      L.check(106, 11);
+      L.meteors(110, 16);
+      L.walker(114, 11); L.spiky(120, 11); L.walker(124, 11);
+      L.lava(131, 140); L.mplat(132, 10, 3, { dx: 4 }); L.coins(134, 7, 3);
+      L.ground(141, 175);
+      L.stairs(148, 4); L.plat(153, 6, 3); L.star(154, 5);
+      L.walker(158, 11); L.flyer(161, 7);
+      L.goal(166, 11);
+    }
+  },
+  {
+    id: '7-3', world: 6, name: 'Der Feuer-Drache', w: 110, boss: true,
+    build(L) {
+      L.ground(0, 20);
+      L.sign(3, 11, 'Der Feuer-Drache speit Feuer! Spring drüber und hüpf ihm auf den Kopf. Das Schwert hilft auch!');
+      L.blocks(7, 9, 'qwq');
+      L.walker(14, 11); L.spiky(17, 11);
+      L.lava(21, 23);
+      L.ground(24, 45);
+      L.plat(27, 9, 3); L.plat(31, 6, 3); L.star(32, 5);
+      L.flyer(36, 8); L.urchin(40, 11);
+      L.lava(46, 50); L.mplat(47, 10, 2, { dx: 2 });
+      L.ground(51, 110);
+      L.check(53, 11);
+      L.blocks(57, 9, 'brb'); L.star(58, 5);
+      L.walker(62, 11); L.walker(65, 11); L.flyer(68, 7);
+      L.check(72, 11);
+      L.boss(75, 98, 88, 11);
+      L.goal(103, 11);
+    }
+  },
+
+  /* ================= WELT 8: CHEMIELABOR ================= */
+  {
+    id: '8-1', world: 7, name: 'Im Chemielabor', w: 180,
+    build(L) {
+      L.ground(0, 15);
+      L.sign(3, 11, 'Achtung, grüne Säure! Nicht hineinfallen. Mit der Schaumspritze machst du Schleim-Kleckse unschädlich.');
+      L.blocks(8, 9, 'bwb');
+      L.lava(16, 18); L.jumper(17);
+      L.ground(19, 30);
+      L.walker(25, 11);
+      L.lava(31, 34); L.jumper(32); L.coinArc(30, 8, 6);
+      L.ground(35, 50);
+      L.blocks(39, 9, 'qhq');
+      L.flyer(45, 8); L.walker(48, 11);
+      L.lava(51, 60); L.mplat(52, 10, 3, { dx: 5 }); L.star(56, 7);
+      L.ground(61, 80);
+      L.check(63, 11);
+      L.rect(68, 10, 6, 2); L.walker(70, 9);
+      L.spiky(77, 11);
+      L.lava(81, 83); L.jumper(82);
+      L.ground(84, 100);
+      L.spring(88, 11); L.plat(86, 4, 6); L.coins(86, 3, 5); L.star(91, 3);
+      L.flyer(95, 8);
+      L.lava(101, 105); L.rect(103, 10, 1, 4);
+      L.ground(106, 130);
+      L.urchin(110, 11); L.blocks(113, 9, 'bbqbb'); L.coins(113, 8, 5);
+      L.walker(118, 11); L.spiky(123, 11);
+      L.check(128, 11);
+      L.lava(131, 145); L.mplat(132, 10, 3, { dx: 4 }); L.mplat(139, 9, 3, { dx: 3, speed: 60 });
+      L.ground(146, 180);
+      L.blocks(150, 9, 'bbb'); L.star(152, 6);
+      L.walker(156, 11);
+      L.stairs(160, 4); L.rect(164, 8, 2, 4);
+      L.goal(172, 11);
+    }
+  },
+  {
+    id: '8-2', world: 7, name: 'Tropfende Kolben', w: 175,
+    build(L) {
+      L.ground(0, 25);
+      L.sign(3, 11, 'Hier tropft Säure von der Decke! Pass auf die roten Kreise auf.');
+      L.blocks(8, 9, 'qwq');
+      L.meteors(12, 12);
+      L.urchin(18, 11); L.walker(22, 11);
+      L.mplat(28, 10, 3, { dx: 3 });
+      L.lava(26, 33);
+      L.ground(34, 55);
+      L.check(36, 11);
+      L.meteors(38, 15);
+      L.conv(40, 47, 12, 1); L.coins(41, 10, 6);
+      L.plat(48, 9, 2); L.plat(51, 6, 3); L.star(52, 5);
+      L.spiky(53, 11);
+      L.lava(56, 59); L.jumper(57);
+      L.ground(60, 85);
+      L.flyer(65, 7); L.walker(70, 11); L.urchin(74, 11);
+      L.blocks(77, 9, 'bqrqb');
+      L.walker(82, 11);
+      L.lava(86, 95); L.mplat(87, 10, 3, { dx: 5 }); L.star(91, 7);
+      L.ground(96, 125);
+      L.check(98, 11);
+      L.meteors(102, 18);
+      L.conv(106, 113, 12, -1);
+      L.spiky(116, 11); L.walker(120, 11);
+      L.lava(126, 128); L.jumper(127);
+      L.ground(129, 175);
+      L.stairs(135, 4); L.plat(140, 6, 3); L.star(141, 5);
+      L.flyer(147, 7); L.urchin(151, 11); L.walker(155, 11);
+      L.goal(165, 11);
+    }
+  },
+  {
+    id: '8-3', world: 7, name: 'Professor Blubb', w: 105, boss: true,
+    build(L) {
+      L.ground(0, 25);
+      L.sign(3, 11, 'Professor Blubb wirft mit Säure-Kolben! Hüpf ihm dreimal auf den Kopf. Schaum löscht die Kolben.');
+      L.blocks(8, 9, 'bwb');
+      L.urchin(13, 11); L.walker(18, 11);
+      L.lava(26, 28); L.jumper(27);
+      L.ground(29, 50, 11);
+      L.check(31, 10);
+      L.plat(36, 8, 3); L.star(37, 7);
+      L.flyer(44, 7); L.spiky(47, 10);
+      L.lava(51, 53);
+      L.ground(54, 105);
+      L.check(56, 11);
+      L.blocks(60, 9, 'bqb'); L.star(61, 6);
+      L.boss(66, 89, 79, 11);
+      L.goal(95, 11);
+    }
+  },
+
+  /* ================= WELT 9: POLIZEI-EINSATZ ================= */
+  {
+    id: '9-1', world: 8, name: 'Gauner in der Stadt', w: 175,
+    build(L) {
+      L.ground(0, 22);
+      L.sign(3, 11, 'Polizei-Einsatz! Gauner haben Juwelen gestohlen. Hüpf ihnen auf den Kopf oder nimm das Fangnetz: {spray}!');
+      L.blocks(9, 9, 'bwb');
+      L.walker(15, 11); L.walker(19, 11);
+      L.coinArc(22, 9, 5);
+      L.ground(26, 45, 11);
+      L.walker(30, 10); L.urchin(35, 10);
+      L.plat(39, 8, 4); L.star(41, 7);
+      L.flyer(43, 6);
+      L.ground(49, 70);
+      L.check(51, 11);
+      L.spring(56, 11); L.plat(54, 4, 5); L.coins(54, 3, 5);
+      L.spiky(62, 11); L.walker(66, 11);
+      L.ground(74, 95, 10);
+      L.blocks(78, 6, 'qrq');
+      L.walker(82, 9); L.urchin(86, 9); L.spiky(90, 9);
+      L.ground(99, 125);
+      L.check(101, 11);
+      L.blocks(105, 10, 'g'); L.plat(107, 7, 4); L.star(109, 6);
+      L.flyer(115, 7);
+      L.walker(118, 11); L.walker(121, 11);
+      L.ground(129, 175);
+      L.stairs(138, 4); L.rect(142, 8, 4, 4); L.star(144, 6);
+      L.walker(150, 11); L.spiky(155, 11);
+      L.goal(165, 11);
+    }
+  },
+  {
+    id: '9-2', world: 8, name: 'Das Juwelen-Museum', w: 185,
+    build(L) {
+      L.ground(0, 20);
+      L.sign(3, 11, 'Im Museum sind Alarm-Laser! Warte, bis der rote Strahl aus ist, dann lauf schnell durch.');
+      L.blocks(8, 9, 'qwq');
+      L.walker(13, 11);
+      L.laser(17, 2, 11, 0);
+      L.mplat(22, 10, 3, { dx: 2 }); L.mplat(27, 9, 2, { dy: -3 });
+      L.ground(31, 50);
+      L.conv(34, 43, 12, 1); L.flyer(40, 5);
+      L.plat(36, 8, 3); L.star(37, 7);
+      L.urchin(47, 11);
+      L.ground(54, 80);
+      L.check(56, 11);
+      L.rect(60, 0, 14, 9);
+      L.laser(63, 9, 11, 0); L.laser(67, 9, 11, 1.0); L.laser(71, 9, 11, 2.0);
+      L.coins(61, 11, 2); L.coins(64, 11, 3); L.coins(68, 11, 3);
+      L.spiky(77, 11);
+      L.mplat(81, 10, 2, { dx: 2 });
+      L.ground(85, 110);
+      L.check(87, 11);
+      L.blocks(91, 9, 'bqrqb');
+      L.walker(95, 11); L.walker(99, 11); L.flyer(103, 6);
+      L.spring(108, 11);
+      L.ground(111, 121, 6);
+      L.laser(115, 2, 5, 0.5); L.star(119, 5);
+      L.ground(122, 140);
+      L.urchin(127, 11); L.conv(129, 138, 12, -1); L.flyer(134, 8);
+      L.plat(142, 10, 2); L.mplat(145, 9, 2, { dy: 2 }); L.plat(148, 10, 2);
+      L.ground(151, 185);
+      L.check(153, 11);
+      L.laser(158, 2, 11, 0); L.walker(162, 11);
+      L.stairs(165, 3); L.plat(169, 6, 3); L.star(170, 5);
+      L.goal(177, 11);
+    }
+  },
+  {
+    id: '9-3', world: 8, name: 'Der Meister-Räuber', w: 110, boss: true,
+    build(L) {
+      L.ground(0, 22);
+      L.sign(3, 11, 'Der Meister-Räuber wirft mit Geldsäcken! Spring drüber und hüpf ihm viermal auf den Kopf.');
+      L.blocks(8, 9, 'qwq');
       L.walker(15, 11); L.laser(19, 2, 11, 0);
       L.ground(26, 48);
       L.conv(29, 38, 12, -1); L.flyer(34, 7);

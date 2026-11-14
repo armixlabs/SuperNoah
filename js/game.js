@@ -147,7 +147,7 @@ function hintText(text) {
     name: s ? s.name : 'Noah',
     move: touch ? 'Lauf mit dem Pfeil-Knopf nach rechts.' : 'Lauf mit den Pfeiltasten nach rechts.',
     jump: touch ? 'Spring mit dem roten Knopf.' : 'Spring mit der Leertaste.',
-    spray: touch ? 'Halte den blauen Wasser-Knopf gedrückt zum Spritzen' : 'Halte X gedrückt zum Spritzen',
+    spray: (n => touch ? n.hintTouch : n.hint)(TOOL_NAMES[toolOf(G.lvl ? G.lvl.theme : 'city')]),
   };
   return text.replace(/\{(\w+)\}/g, (m, k) => parts[k] ?? m);
 }
@@ -190,6 +190,9 @@ function setupBoss(e, s, theme) {
   else if (theme === 'ice') { e.w = 92; e.h = 108; e.name = 'Schnee-Yeti'; }
   else if (theme === 'sea') { e.w = 116; e.h = 92; e.name = 'Riesen-Krake'; }
   else if (theme === 'robo') { e.w = 96; e.h = 124; e.name = 'Mega-Roboter'; e.hp = e.maxHp = 4; }
+  else if (theme === 'knight') { e.w = 130; e.h = 104; e.name = 'Feuer-Drache'; }
+  else if (theme === 'lab') { e.w = 70; e.h = 104; e.name = 'Professor Blubb'; }
+  else if (theme === 'police') { e.w = 72; e.h = 100; e.name = 'Meister-Räuber'; e.hp = e.maxHp = 4; }
   else { e.w = 150; e.h = 64; e.name = 'Alien-UFO'; }
   e.x = s.x * T + T / 2 - e.w / 2;
   e.y = (theme === 'space' || theme === 'sea') ? s.y * T : (s.y + 1) * T - e.h;
@@ -198,7 +201,7 @@ function setupBoss(e, s, theme) {
 
 function makePlayer(x, by, power) {
   return { x, y: by - 44, w: 26, h: 44, vx: 0, vy: 0, onGround: false, facing: 1, coyote: 0, buffer: 0, inv: 0,
-    power, hearts: 3, ride: null, run: 0, sprayCD: 0, swimCD: 0, jumping: false, prevBottom: by, visible: true, rot: 0 };
+    power, hearts: 3, ride: null, run: 0, sprayCD: 0, swimCD: 0, swing: 0, swingCD: 0, swingId: 0, jumping: false, prevBottom: by, visible: true, rot: 0 };
 }
 
 function startLevel(idx) {
@@ -213,11 +216,30 @@ function startLevel(idx) {
     G.ents.push(e); if (e.type === 'boss') G.boss = e;
   }
   G.check = { x: 2 * T, y: 12 * T };
-  G.player = makePlayer(G.check.x, G.check.y, G.lvl.startPower);
+  G.player = makePlayer(G.check.x, G.check.y, levelStartPower());
+  announceCarry();
   G.cam = 0; G.mode = 'play';
   Sfx.music(G.lvl.theme);
   Sfx.speak(def.name);
   UI.onLevelStart();
+}
+
+/* ---------------- Mitgenommener Gegenstand ---------------- */
+// Was Noah am Ende eines Levels in der Hand hatte, nimmt er ins nächste Level mit.
+// Kommt er in eine andere Welt, verwandelt sich das Werkzeug passend dazu.
+function levelStartPower() {
+  const s = Store.current(), start = G.lvl.startPower;
+  const carry = s && s.carry ? s.carry : 'none';
+  return RANK[carry] > RANK[start] ? carry : start;
+}
+function announceCarry() {
+  const s = Store.current(); G.transform = null;
+  if (!s || s.carry !== 'hose' || G.player.power !== 'hose') return;
+  const from = toolOf(s.carryTheme || 'city'), to = toolOf(G.lvl.theme);
+  if (from === to) return;
+  const text = TOOL_NAMES[from].mine + ' hat sich in ' + TOOL_NAMES[to].a + ' verwandelt!';
+  G.transform = { text, from, to, t: 4.5 };
+  setTimeout(() => { if (G.mode === 'play') { Sfx.play('power'); Sfx.speak(text + ' ' + hintText('{spray}.')); } }, 2600);
 }
 
 /* ---------------- Spieler ---------------- */
@@ -292,13 +314,18 @@ function updatePlayer(dt) {
     if (tileAt(tx, ty) === 'L' && p.y + p.h > ty * T + 10) { killPlayer('lava'); return; }
   }
 
-  // Wasserspritze
-  if (p.power === 'hose' && Input.spray) {
+  // Werkzeug: Schwert und Fangnetz schwingen, Spritzen sprühen
+  const tool = toolOf(G.lvl.theme);
+  if (p.swingCD > 0) p.swingCD -= dt;
+  if (p.swing > 0) { p.swing -= dt; swingHits(p); }
+  if (p.power === 'hose' && (tool === 'sword' || tool === 'net')) {
+    if (Input.sprayP && p.swingCD <= 0) { p.swing = 0.24; p.swingCD = 0.34; p.swingId = (p.swingId || 0) + 1; Sfx.play('swish'); }
+  } else if (p.power === 'hose' && Input.spray) {
     p.sprayCD -= dt;
     if (p.sprayCD <= 0) {
       p.sprayCD = 0.075;
       if (ph.swim) G.drops.push({ x: p.x + p.w / 2 + p.facing * 26, y: p.y + 19, vx: p.facing * rand(340, 400) + p.vx * 0.5, vy: rand(-30, 30), life: 0.75, r: rand(4, 7), bubble: true });
-      else G.drops.push({ x: p.x + p.w / 2 + p.facing * 26, y: p.y + 19, vx: p.facing * rand(560, 640) + p.vx * 0.5, vy: rand(-150, -40), life: 0.8, r: rand(4, 6) });
+      else G.drops.push({ x: p.x + p.w / 2 + p.facing * 26, y: p.y + 19, vx: p.facing * rand(560, 640) + p.vx * 0.5, vy: rand(-150, -40), life: 0.8, r: rand(4, 6), foam: tool === 'foam' });
       if (G.sprayTick++ % 3 === 0) Sfx.play('spray');
     }
   } else p.sprayCD = 0;
@@ -343,7 +370,7 @@ function respawn() {
   const old = G.player;
   let hearts = G.dieReason === 'hit' ? 3 : old.hearts - 1;
   if (hearts <= 0) hearts = 3;
-  G.player = makePlayer(G.check.x, G.check.y, G.lvl.startPower);
+  G.player = makePlayer(G.check.x, G.check.y, levelStartPower());
   G.player.hearts = hearts; G.player.inv = 1.5;
   G.shots = []; G.drops = [];
   const b = G.boss;
@@ -386,6 +413,28 @@ function awake(e) {
   return true;
 }
 
+function swingHits(p) {
+  const reach = 56;
+  const box = { x: p.facing > 0 ? p.x + p.w / 2 : p.x + p.w / 2 - reach, y: p.y - 14, w: reach, h: p.h + 18 };
+  for (const e of G.ents) {
+    if (e.dead || !e.enemy || e.immune || e.squash || e.swingHit === p.swingId) continue;
+    if (!overlap(box, e)) continue;
+    e.swingHit = p.swingId;
+    if (e.hp && e.hp > 2) { e.hp -= 2; burst(e.x + e.w / 2, e.y + e.h / 2, 5, ['#fff', '#ffeb3b'], { kind: 'star', size: 6 }); }
+    else killEnemy(e, 'swing');
+  }
+  const b = G.boss;
+  if (b && b.active && b.state !== 'dead' && b.swingHit !== p.swingId && overlap(box, b)) {
+    b.swingHit = p.swingId; damageBoss(b, 0.25, false); b.flashT = 0.15; Sfx.play('bump');
+    burst(box.x + reach / 2, p.y + 20, 6, ['#fff', '#ffeb3b'], { kind: 'star', size: 6 });
+  }
+  for (const s of G.shots) {
+    if (s.life > 0 && !s.splat && overlap(box, { x: s.x - s.r, y: s.y - s.r, w: s.r * 2, h: s.r * 2 })) {
+      s.life = 0; burst(s.x, s.y, 8, ['#fff', '#ffeb3b', '#bdbdbd'], { kind: 'star', size: 6 });
+    }
+  }
+}
+
 function killEnemy(e, how) {
   if (e.dead) return;
   e.dead = true;
@@ -397,6 +446,7 @@ function killEnemy(e, how) {
     burst(cx, cy, 12, ['#fff', '#ffeb3b', '#bbb'], { kind: 'star', size: 7 });
     if (how !== 'stomp') Sfx.play('stomp');
   }
+  if (G.lvl.theme === 'police' && e.type !== 'flyer') floatText(cx, e.y - 10, 'Gefangen!', '#90caf9');
   coinPop(cx, e.y); addCoins(1);
 }
 
@@ -495,6 +545,9 @@ const BOSS_TEXT = {
   dino: ['Rooaar! Der große T-Rex! Hüpf ihm auf den Kopf!', 'Super! Du hast den T-Rex besiegt!'],
   city: ['Der Feuer-Riese! Spritz ihn nass!', 'Super! Das Feuer ist aus!'],
   space: ['Das Alien-UFO! Warte, bis es runterkommt!', 'Super! Das UFO fliegt weg!'],
+  knight: ['Der Feuer-Drache! Spring über das Feuer und hüpf ihm auf den Kopf!', 'Super! Der Drache ist jetzt ganz lieb!'],
+  lab: ['Professor Blubb wirft mit Säure-Kolben! Hüpf ihm auf den Kopf!', 'Super! Der Professor räumt jetzt sein Labor auf!'],
+  police: ['Der Meister-Räuber! Fang ihn ein und hol die Juwelen zurück!', 'Super! Der Räuber ist gefangen!'],
   ice: ['Der Schnee-Yeti! Weich den Schneebällen aus!', 'Super! Der Yeti gibt auf!'],
   sea: ['Die Riesen-Krake! Schwimm über sie und hüpf ihr auf den Kopf!', 'Super! Die Krake schwimmt davon!'],
   robo: ['Der Mega-Roboter! Spring über die Blitze!', 'Super! Der Mega-Roboter ist kaputt!'],
@@ -521,10 +574,10 @@ function updBoss(e, dt) {
   const minX = e.ax1 + T * 0.5, maxX = e.ax2 - e.w - 4;
   const pcx = p.x + p.w / 2, ecx = e.x + e.w / 2;
 
-  if (e.kind === 'dino' || e.kind === 'robo') {
+  if (e.kind === 'dino' || e.kind === 'robo' || e.kind === 'knight' || e.kind === 'police') {
     if (e.state === 'intro') { e.timer -= dt; e.face = pcx < ecx ? -1 : 1; if (e.timer <= 0) { e.state = 'walk'; e.timer = 2.4; } }
     else {
-      const sp = e.kind === 'robo' ? 70 + (e.maxHp - e.hp) * 22 : 95 + (3 - e.hp) * 40;
+      const sp = e.kind === 'police' ? 110 + (e.maxHp - e.hp) * 25 : e.kind !== 'dino' ? 70 + (e.maxHp - e.hp) * 22 : 95 + (3 - e.hp) * 40;
       e.vx = e.hurtT > 0 ? e.face * sp * 0.4 : e.face * sp;
       e.timer -= dt;
       if (e.timer <= 0 && e.onGround) { e.vy = -820; e.onGround = false; e.timer = rand(2.0, 3.2); }
@@ -533,18 +586,19 @@ function updBoss(e, dt) {
       const was = e.onGround;
       const r = moveBody(e, dt); e.onGround = r.ground;
       if (!was && e.onGround) { G.shake = 0.3; Sfx.play('boom'); }
-      if (e.kind === 'robo') {
+      if (e.kind !== 'dino') {
         e.dropT -= dt;
         if (e.dropT <= 0 && e.onGround && e.hurtT <= 0) {
           e.dropT = 2.6 - (e.maxHp - e.hp) * 0.35; e.face = pcx < ecx ? -1 : 1;
-          G.shots.push({ kind: 'bolt', x: ecx + e.face * 60, y: e.y + e.h - 24, vx: e.face * 260, vy: 0, g: 0, r: 10, life: 4 });
+          const sk = { robo: 'bolt', knight: 'fire', police: 'bag' }[e.kind];
+          G.shots.push({ kind: sk, x: ecx + e.face * e.w * 0.5, y: sk === 'fire' ? e.y + 40 : e.y + e.h - (sk === 'bag' ? 14 : 24), vx: e.face * (sk === 'bag' ? 220 : 260), vy: 0, g: 0, r: sk === 'fire' ? 13 : 10, life: 4 });
           Sfx.play('bossHit');
         }
       }
     }
     if (e.x < minX) { e.x = minX; e.face = 1; }
     if (e.x > maxX) { e.x = maxX; e.face = -1; }
-  } else if (e.kind === 'city' || e.kind === 'ice') {
+  } else if (e.kind === 'city' || e.kind === 'ice' || e.kind === 'lab') {
     if (e.state === 'intro') { e.timer -= dt; if (e.timer <= 0) { e.state = 'walk'; e.timer = 1.6; } }
     else {
       const sp = 55 + (3 - e.hp) * 25;
@@ -559,7 +613,7 @@ function updBoss(e, dt) {
         for (const ft of times) {
           const sx = ecx, sy = e.y + 30, g = 900;
           const tx = pcx + rand(-30, 30), ty = p.y + p.h - 12;
-          G.shots.push({ kind: e.kind === 'ice' ? 'snow' : 'fire', x: sx, y: sy, vx: (tx - sx) / ft, vy: (ty - sy - 0.5 * g * ft * ft) / ft, g, r: 13, life: 3 });
+          G.shots.push({ kind: { ice: 'snow', lab: 'flask' }[e.kind] || 'fire', x: sx, y: sy, vx: (tx - sx) / ft, vy: (ty - sy - 0.5 * g * ft * ft) / ft, g, r: 13, life: 3 });
         }
         Sfx.play('steam');
       }
@@ -652,7 +706,7 @@ function updShots(dt) {
     const c = tileAt(Math.floor(s.x / T), Math.floor((s.y + s.r * 0.6) / T));
     if (isSolidChar(c) || c === 'P') {
       if (s.kind === 'slime') { s.splat = 0.6; s.vx = s.vy = 0; }
-      else { s.life = 0; burst(s.x, s.y, 8, { snow: ['#fff', '#dff1fb'], ink: ['#311b92', '#5e35b1'], bolt: ['#ffeb3b', '#fff'] }[s.kind] || ['#ff9800', '#ffeb3b'], { up: 120 }); }
+      else { s.life = 0; burst(s.x, s.y, 8, { snow: ['#fff', '#dff1fb'], ink: ['#311b92', '#5e35b1'], bolt: ['#ffeb3b', '#fff'], flask: ['#76ff03', '#b2ff59', '#e0f2f1'], bag: ['#8d6e63', '#ffd54f'] }[s.kind] || ['#ff9800', '#ffeb3b'], { up: 120 }); }
       continue;
     }
     if (G.mode === 'play' && overlap(p, { x: s.x - s.r, y: s.y - s.r, w: s.r * 2, h: s.r * 2 }, 4)) { hurtPlayer(s.x); }
@@ -685,7 +739,7 @@ function updDrops(dt) {
       burst(d.x, d.y, 2, ['#e1f5fe', '#b3e5fc'], { kind: 'steam', g: -100, up: 60, size: 8, max: 80 });
     }
     if (d.life > 0) for (const s of G.shots) {
-      if (s.kind === 'fire' && Math.hypot(s.x - d.x, s.y - d.y) < s.r + d.r) {
+      if ((s.kind === 'fire' || s.kind === 'flask') && Math.hypot(s.x - d.x, s.y - d.y) < s.r + d.r) {
         s.life = 0; d.life = 0; burst(s.x, s.y, 6, ['#eceff1', '#cfd8dc'], { kind: 'steam', g: -150, up: 60, size: 10 }); Sfx.play('steam'); break;
       }
     }
@@ -726,7 +780,7 @@ function updEntity(e, dt) {
         } else {
           if (RANK[e.item] >= RANK[p.power]) p.power = e.item;
           Sfx.play('power');
-          Sfx.speak(e.item === 'helmet' ? 'Ein Feuerwehrhelm! Der schützt dich.' : hintText('Die Wasserspritze! {spray}.'));
+          Sfx.speak(e.item === 'helmet' ? 'Ein Helm! Der schützt dich.' : TOOL_NAMES[toolOf(G.lvl.theme)].the + '! ' + hintText('{spray}.'));
         }
         burst(e.x + 15, e.y + 15, 16, ['#fff', '#ffeb3b', '#4fc3f7'], { kind: 'star', size: 6 });
       }
@@ -790,7 +844,7 @@ function startGoal(e) {
 function updateGoal(dt) {
   const p = G.player, e = G.goalEnt, ph = G.lvl.phys, theme = G.lvl.theme;
   G.goalT += dt;
-  const kind = { dino: 'cheer', city: 'drive', ice: 'drive', sea: 'drive' }[theme] || 'launch';
+  const kind = { dino: 'cheer', knight: 'cheer', city: 'drive', ice: 'drive', sea: 'drive', police: 'drive', lab: 'beam' }[theme] || 'launch';
   const targetX = kind === 'cheer' ? e.x - 20 : kind === 'drive' ? e.x + e.w / 2 + 40 : e.x + e.w / 2 - p.w / 2;
   if (G.goalPhase === 'walk') {
     const d = targetX - p.x;
@@ -798,14 +852,17 @@ function updateGoal(dt) {
     if ((Math.abs(d) < 6 && p.onGround) || G.goalT > 2.5) {
       G.goalPhase = 'anim'; G.goalT = 0; p.vx = 0;
       if (kind !== 'cheer') p.visible = false;
-      if (theme === 'city') Sfx.play('siren');
+      if (theme === 'city' || theme === 'police') Sfx.play('siren');
+      else if (kind === 'beam') Sfx.play('power');
+      else if (theme === 'knight') Sfx.play('check');
       else if (theme === 'ice') Sfx.play('star');
       else if (theme === 'sea') Sfx.play('steam');
       else if (kind === 'launch') setTimeout(() => Sfx.play('rocket'), 500);
     }
   } else {
     e.anim = G.goalT;
-    if (theme === 'dino' && p.onGround) { p.vy = -560; p.facing = 1; }
+    if (kind === 'cheer' && p.onGround) { p.vy = -560; p.facing = 1; }
+    if (kind === 'beam' && Math.random() < dt * 25) burst(e.x + e.w / 2 + rand(-30, 30), e.y + e.h - rand(0, 120), 2, ['#69f0ae', '#e0f7fa', '#fff'], { kind: 'star', size: 6, up: 60 });
     if (Math.random() < dt * 20) {
       G.parts.push({ x: G.cam + rand(0, VW), y: -10, vx: rand(-40, 40), vy: rand(80, 160), life: 3, max: 3, col: ['#e53935', '#ffeb3b', '#43a047', '#1e88e5', '#ff6f91'][Math.floor(rand(0, 5))], size: rand(5, 9), g: 30, kind: 'confetti', rot: rand(0, 6) });
     }
@@ -829,6 +886,7 @@ function finishLevel() {
   if (!rec.best || G.time < rec.best) rec.best = Math.round(G.time * 10) / 10;
   s.levels[id] = rec;
   s.coins += G.coins;
+  s.carry = G.player.power; s.carryTheme = G.lvl.theme;
   let ending = false;
   if (G.levelIndex === LEVELS.length - 1 && firstClear) { s.ending = true; ending = true; }
   const ok = Store.commit();
@@ -860,6 +918,7 @@ function update(dt) {
     updParticles(dt); updateCamera(dt); return;
   }
   G.time += dt; G.bannerT -= dt;
+  if (G.transform && G.bannerT <= 0) { G.transform.t -= dt; if (G.transform.t <= 0) G.transform = null; }
   const lvl = G.lvl;
   for (const k in lvl.bumps) { lvl.bumps[k] += dt; if (lvl.bumps[k] > 0.18) delete lvl.bumps[k]; }
   for (const e of G.ents) if (e.type === 'mplat') updMplat(e, dt);
@@ -932,19 +991,20 @@ function drawGame(c) {
   if (p.visible && !(p.inv > 0 && G.mode === 'play' && Math.floor(G.t * 15) % 2)) {
     const s = Store.current();
     drawNoah(c, p.x + p.w / 2, p.y + p.h, {
-      outfit: s ? s.outfit : 'feuerwehr', power: p.power, facing: p.facing, run: p.run,
+      outfit: s ? s.outfit : 'feuerwehr', power: p.power, facing: p.facing, run: p.run, tool: toolOf(theme), swing: p.swing > 0 ? p.swing / 0.24 : 0,
       moving: Math.abs(p.vx) > 20, air: !p.onGround, t, rot: G.mode === 'dying' && G.dieReason !== 'fall' ? p.rot : 0,
     });
   }
   // Wasser und Geschosse
   for (const d of G.drops) {
     if (d.bubble) { c.strokeStyle = 'rgba(255,255,255,0.9)'; c.lineWidth = 2; circle(c, d.x, d.y, d.r, 'rgba(180,230,255,0.35)'); c.stroke(); }
-    else { circle(c, d.x, d.y, d.r, '#4fc3f7'); circle(c, d.x - d.r * 0.3, d.y - d.r * 0.3, d.r * 0.4, '#e1f5fe'); }
+    else { circle(c, d.x, d.y, d.r, d.foam ? '#b9f6ca' : '#4fc3f7'); circle(c, d.x - d.r * 0.3, d.y - d.r * 0.3, d.r * 0.4, '#e1f5fe'); }
   }
   for (const s of G.shots) {
     if (s.kind === 'fire') { flame(c, s.x, s.y + s.r, s.r * 2.2, s.r * 3, t, s.x); circle(c, s.x, s.y + 2, s.r * 0.6, '#ffeb3b'); }
     else if (s.kind === 'snow') { circle(c, s.x, s.y, s.r, '#fff'); circle(c, s.x + 3, s.y + 3, s.r * 0.6, '#dcefff'); }
     else if (s.kind === 'ink') { circle(c, s.x, s.y, s.r, '#311b92'); circle(c, s.x - 4, s.y - 4, 4, '#5e35b1'); circle(c, s.x - s.vx * 0.06, s.y - s.vy * 0.06, s.r * 0.7, 'rgba(49,27,146,0.5)'); }
+    else if (s.kind === 'flask' || s.kind === 'bag') drawShotExtra(c, s, t);
     else if (s.kind === 'bolt') { ellipse(c, s.x, s.y, s.r * 1.8, s.r * 0.9, 'rgba(255,235,59,0.35)'); ellipse(c, s.x, s.y, s.r * 1.2, s.r * 0.5, '#ffeb3b'); ellipse(c, s.x, s.y, s.r * 0.6, s.r * 0.25, '#fff'); }
     else if (s.splat) { ellipse(c, s.x, s.y + s.r - 2, s.r * 1.8, 5, 'rgba(118,255,3,0.7)'); }
     else { ellipse(c, s.x, s.y, s.r, s.r * 1.2, '#76ff03'); circle(c, s.x - 3, s.y - 4, 3, '#ccff90'); }
@@ -990,13 +1050,13 @@ function mapNav(dir) {
   let i = G.mapSel + dir;
   if (i < 0 || i >= LEVELS.length) return;
   if (!Store.isUnlocked(s, i)) return;
+  if (Math.floor(i / 9) !== Math.floor(G.mapSel / 9)) G.mapToken = null;
   G.mapSel = i; Sfx.play('select');
 }
 
 function updateMap(dt) {
-  const flip = G.mapSel >= 9 ? -1 : 1;   // untere Reihe läuft von rechts nach links
-  if (Input.leftP) mapNav(-flip);
-  if (Input.rightP) mapNav(flip);
+  if (Input.leftP) mapNav(-1);
+  if (Input.rightP) mapNav(1);
   if (Input.okP || Input.jumpP) { UI.startSelected(); return; }
   const [tx, ty] = MAP_NODES[G.mapSel];
   if (!G.mapToken) G.mapToken = [tx, ty];
@@ -1006,7 +1066,16 @@ function updateMap(dt) {
 
 function mapClick(x, y) {
   const s = Store.current();
-  for (let i = 0; i < MAP_NODES.length; i++) {
+  const page = Math.floor(G.mapSel / 9);
+  if (Math.hypot(x - 26, y - 300) < 30 || Math.hypot(x - (VW - 26), y - 300) < 30) {
+    const np = page + (x < VW / 2 ? -1 : 1), first = np * 9;
+    if (np < 0 || first >= LEVELS.length) return;
+    let pick = -1;
+    for (let i = Math.min(LEVELS.length, first + 9) - 1; i >= first; i--) if (Store.isUnlocked(s, i)) { pick = i; break; }
+    if (pick < 0) { Sfx.play('bump'); Sfx.speak('Diese Welten sind noch verschlossen.'); return; }
+    G.mapSel = pick; G.mapToken = null; Sfx.play('select'); return;
+  }
+  for (let i = page * 9; i < Math.min(LEVELS.length, page * 9 + 9); i++) {
     const [nx, ny] = MAP_NODES[i];
     if (Math.hypot(x - nx, y - ny) < 34) {
       if (!Store.isUnlocked(s, i)) { Sfx.play('bump'); return; }

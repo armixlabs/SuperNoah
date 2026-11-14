@@ -23,6 +23,8 @@ const Store = (() => {
       outfit: OUTFIT_IDS.includes(s.outfit) ? s.outfit : 'feuerwehr',
       owned: Array.isArray(s.owned) ? s.owned.filter(id => OUTFIT_IDS.includes(id)) : [],
       levels: {}, ending: !!s.ending,
+      carry: ['none', 'helmet', 'hose'].includes(s.carry) ? s.carry : 'none',
+      carryTheme: typeof s.carryTheme === 'string' ? s.carryTheme.slice(0, 12) : '',
     };
     if (!o.owned.includes('feuerwehr')) o.owned.unshift('feuerwehr');
     if (!o.owned.includes(o.outfit)) o.outfit = 'feuerwehr';
