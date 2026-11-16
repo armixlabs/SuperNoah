@@ -134,3 +134,34 @@ i.coin { display: inline-block; width: .95em; height: .95em; border-radius: 50%;
     flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 22px; }
   #rotate div { font-size: 80px; animation: wob 2s ease-in-out infinite; }
 }
+
+/* ---------- Feinschliff: moderneres Menü-Design ---------- */
+html, body, button, select, input { font-family: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Nunito", "Trebuchet MS", system-ui, sans-serif; }
+.panel {
+  background: linear-gradient(#fffdf7, #fff1d0); border: none; border-radius: 1.7em;
+  box-shadow: 0 0 0 .22em #ffcc33, 0 .55em 0 .22em rgba(176,116,0,.4), 0 1.6em 3em rgba(0,0,0,.45);
+  animation: panelIn .3s cubic-bezier(.2, 1.4, .4, 1);
+}
+@keyframes panelIn { from { transform: scale(.9) translateY(.7em); opacity: 0; } }
+.screen.dim, #modal { -webkit-backdrop-filter: blur(5px) saturate(1.1); backdrop-filter: blur(5px) saturate(1.1); }
+button { transition: transform .09s, filter .15s, box-shadow .15s; font-weight: bold; }
+button:hover:not(:disabled) { transform: translateY(-.08em) scale(1.03); }
+button:active:not(:disabled) { transform: translateY(.2em) scale(.98); }
+button:focus-visible { outline: .18em solid #1e88e5; outline-offset: .15em; }
+button.big { animation: pulseBtn 2.2s ease-in-out infinite; }
+@keyframes pulseBtn { 50% { box-shadow: 0 .2em 0 #9a1c16, 0 .35em 1.4em rgba(255, 90, 60, .75); } }
+.slot, .outfit { transition: transform .15s, box-shadow .15s; box-shadow: 0 .25em 0 rgba(200,150,40,.35); border-radius: 1.2em; }
+.slot:hover, .outfit:hover { transform: translateY(-.25em); box-shadow: 0 .5em .9em rgba(120,80,0,.25); }
+.pill { box-shadow: 0 .15em .5em rgba(0,0,0,.28); }
+#mapBar { padding: .6em .8em; }
+.logo span { filter: drop-shadow(0 .06em .12em rgba(0,0,0,.35)); }
+.logo .l1 { animation: wob 2.4s ease-in-out infinite reverse; display: inline-block; }
+.tag { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); background: rgba(10,10,40,.35); }
+.tpad button { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); box-shadow: 0 .2em .7em rgba(0,0,0,.3); animation: none; }
+.tpad button:hover { transform: none; }
+.tpad button.on { transform: scale(.92); }
+#hud .iconbtn { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.resstars span { filter: drop-shadow(0 .05em .08em rgba(0,0,0,.25)); }
+.resline b { color: #c62828; }
+#toast { animation: panelIn .25s; box-shadow: 0 .4em 1em rgba(0,0,0,.35); }
+@media (prefers-reduced-motion: reduce) { .panel, button.big, .logo span, #toast { animation: none; } }

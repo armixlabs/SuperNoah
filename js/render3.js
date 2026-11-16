@@ -294,6 +294,8 @@ drawCollectExtra = function (c, theme, t, empty) {
     const col = empty ? '#666' : '#b388ff';
     c.fillStyle = col; c.beginPath(); c.moveTo(0, -15); c.lineTo(10, -3); c.lineTo(6, 14); c.lineTo(-6, 14); c.lineTo(-10, -3); c.closePath(); c.fill();
     if (!empty) { c.fillStyle = '#e1bee7'; c.beginPath(); c.moveTo(0, -15); c.lineTo(4, -3); c.lineTo(0, 14); c.lineTo(-4, -3); c.fill(); star5(c, 9, -11, 4, 1.6, (t || 0) * 3, '#fff'); }
+  } else if (theme !== 'police') {
+    _collectExtra(c, theme, t, empty);
   } else {
     const col = empty ? '#666' : '#4dd0e1';
     c.fillStyle = col; c.beginPath(); c.moveTo(-14, -5); c.lineTo(-8, -12); c.lineTo(8, -12); c.lineTo(14, -5); c.lineTo(0, 13); c.closePath(); c.fill();
@@ -377,9 +379,9 @@ drawHUD = function (c, G) {
   c.globalAlpha = Math.max(0, a);
   c.fillStyle = 'rgba(0,0,0,0.5)'; rr(c, VW / 2 - 290, 120, 580, 86, 24); c.fill();
   drawToolIcon(c, ({ water: 'city', foam: 'lab', sword: 'knight', net: 'police', bubble: 'sea' })[tr.from], VW / 2 - 240, 163, 1.4) || drawPowerIcon(c, 'hose', VW / 2 - 240, 163, 1.4, 'city');
-  c.fillStyle = '#ffd54f'; c.font = 'bold 30px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('➜', VW / 2 - 190, 174);
+  c.fillStyle = '#ffd54f'; c.font = 'bold 30px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('➜', VW / 2 - 190, 174);
   drawToolIcon(c, ({ water: 'city', foam: 'lab', sword: 'knight', net: 'police', bubble: 'sea' })[tr.to], VW / 2 - 140, 163, 1.4) || drawPowerIcon(c, 'hose', VW / 2 - 140, 163, 1.4, 'city');
-  c.fillStyle = '#fff'; c.font = 'bold 19px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'left';
+  c.fillStyle = '#fff'; c.font = 'bold 19px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'left';
   const words = tr.text.split(' '); let l1 = '', l2 = '';
   for (const w of words) { if ((l1 + ' ' + w).length < 26 && !l2) l1 = (l1 ? l1 + ' ' : '') + w; else l2 = (l2 ? l2 + ' ' : '') + w; }
   c.fillText(l1, VW / 2 - 100, 157); c.fillText(l2, VW / 2 - 100, 184);
@@ -420,7 +422,7 @@ drawGoalExtra = function (c, e, theme, t, anim, cx, by) {
     c.fillStyle = '#1e3a8a'; rr(c, x + 26, by - 82, 92, 30, 10); c.fill();
     c.fillStyle = '#bbdefb'; rr(c, x + 34, by - 77, 34, 20, 4); c.fill(); rr(c, x + 76, by - 77, 34, 20, 4); c.fill();
     c.fillStyle = '#1e3a8a'; c.fillRect(x, by - 40, 150, 8);
-    c.fillStyle = '#fff'; c.font = 'bold 12px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('POLIZEI', x + 75, by - 22);
+    c.fillStyle = '#fff'; c.font = 'bold 12px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('POLIZEI', x + 75, by - 22);
     const blink = Math.floor(t * 6) % 2;
     c.fillStyle = blink ? '#2196f3' : '#e53935'; rr(c, x + 58, by - 92, 14, 10, 3); c.fill();
     c.fillStyle = blink ? '#e53935' : '#2196f3'; rr(c, x + 74, by - 92, 14, 10, 3); c.fill();
@@ -568,10 +570,10 @@ function drawMap(c, t, save, sel, tokenPos) {
   for (let col = 0; col < 3; col++) {
     const wi = page * 3 + col; if (wi >= WORLDS.length) continue;
     const w = WORLDS[wi], unlocked = Store.isUnlocked(save, wi * 3);
-    c.font = 'bold 21px "Arial Rounded MT Bold", Arial, sans-serif';
+    c.font = 'bold 21px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
     const tw = c.measureText(w.name).width + 30;
-    c.fillStyle = 'rgba(0,0,0,0.4)'; rr(c, col * 320 + 160 - tw / 2, 196, tw, 34, 17); c.fill();
-    c.fillStyle = unlocked ? '#fff' : 'rgba(255,255,255,0.5)'; c.fillText(w.name, col * 320 + 160, 220);
+    c.fillStyle = 'rgba(0,0,0,0.4)'; rr(c, col * 320 + 160 - tw / 2, 70, tw, 34, 17); c.fill();
+    c.fillStyle = unlocked ? '#fff' : 'rgba(255,255,255,0.5)'; c.fillText(w.name, col * 320 + 160, 94);
   }
   const first = page * 9, last = Math.min(LEVELS.length, first + 9) - 1;
   // Weg
@@ -594,8 +596,8 @@ function drawMap(c, t, save, sel, tokenPos) {
     if (!unlocked) {
       c.fillStyle = '#eee'; rr(c, x - 9, y - 4, 18, 14, 3); c.fill();
       c.strokeStyle = '#eee'; c.lineWidth = 3.5; c.beginPath(); c.arc(x, y - 5, 6, Math.PI, 0); c.stroke();
-    } else if (L.boss) { c.font = 'bold 15px "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText('BOSS', x, y + 6); }
-    else { c.font = 'bold 18px "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText(L.id, x, y + 7); }
+    } else if (L.boss) { c.font = 'bold 15px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText('BOSS', x, y + 6); }
+    else { c.font = 'bold 18px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText(L.id, x, y + 7); }
     if (unlocked) for (let k = 0; k < 3; k++) drawCollectIcon(c, theme, x - 22 + k * 22, y + 44, 0.6, t, !(rec && rec.stars[k]));
   }
   if (tokenPos && Math.floor(sel / 9) === page) drawNoah(c, tokenPos[0], tokenPos[1] - 26 - Math.abs(Math.sin(t * 4)) * 6, { outfit: save ? save.outfit : 'feuerwehr', power: 'helmet', facing: 1, t, scale: 1.1 });
@@ -604,7 +606,7 @@ function drawMap(c, t, save, sel, tokenPos) {
     const np = page + dir; if (np < 0 || np >= pages) continue;
     const open = Store.isUnlocked(save, np * 9);
     circle(c, ax, 300, 24, open ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.4)');
-    c.fillStyle = open ? '#e53935' : '#9e9e9e'; c.font = 'bold 24px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+    c.fillStyle = open ? '#e53935' : '#9e9e9e'; c.font = 'bold 24px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
     c.fillText(dir < 0 ? '◀' : '▶', ax + dir * 1, 308);
   }
   // Seitenpunkte
@@ -612,8 +614,8 @@ function drawMap(c, t, save, sel, tokenPos) {
   // Infotafel
   const L = LEVELS[sel];
   c.fillStyle = 'rgba(0,0,0,0.55)'; rr(c, VW / 2 - 250, 488, 500, 58, 20); c.fill();
-  c.fillStyle = '#ffd54f'; c.font = 'bold 17px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+  c.fillStyle = '#ffd54f'; c.font = 'bold 17px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
   c.fillText(WORLDS[L.world].name + ' · Level ' + L.id, VW / 2, 510);
-  c.fillStyle = '#fff'; c.font = 'bold 21px "Arial Rounded MT Bold", Arial, sans-serif';
+  c.fillStyle = '#fff'; c.font = 'bold 21px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
   c.fillText(L.name, VW / 2, 535);
 }

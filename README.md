@@ -79,6 +79,8 @@ Auf Touch-Geräten erscheinen die großen Knöpfe automatisch. In den Einstellun
 - **Faire Sprünge:** Springen klappt auch kurz nach der Kante und kurz vor der Landung.
 - **Warnungen vor Gefahren:** Laser blinken, bevor sie angehen, und fallende Eiszapfen und Meteoriten zeigen vorher einen roten Kreis.
 - **Helfer:** Der Helm schützt einmal vor einem Treffer, die Wasserspritze löscht Feuer und verjagt Gegner.
+- **Wie weit noch?** Eine Leiste am unteren Rand zeigt, wie weit es bis zum Ziel ist und wo die Fahnen stehen.
+- **Gleich weiter:** Nach jedem Level führt ein großer Knopf direkt ins nächste Level.
 
 ## Der Kleiderschrank
 
@@ -126,6 +128,7 @@ SuperNoah/
 │   ├── render2.js      Zeichnen der Welten 4–6
 │   ├── render3.js      Zeichnen der Welten 7–9, der Werkzeuge und der Weltkarte
 │   ├── game.js         Physik, Gegner, Bosse, Kamera und Spielschleife
+│   ├── fx.js           Feinschliff: Schatten, Licht, Übergänge, Fortschrittsleiste
 │   └── ui.js           Menüs, Kleiderschrank, Ergebnis
 ├── _headers, robots.txt   optional: hält Suchmaschinen fern, wenn das Spiel online liegt
 └── docs/screenshots/   Bilder für diese Seite

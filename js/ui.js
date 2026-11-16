@@ -66,7 +66,7 @@ const UI = (() => {
   function goSlots() { renderSlots(); show('scrSlots'); setHud('menu'); if (!Store.storageOk) toast('Hinweis: Dieser Browser kann nicht speichern. Bitte exportiere deinen Spielstand als Datei!', 5000); }
   function goMap() {
     if (!Store.current()) { goSlots(); return; }
-    G.mode = 'map'; G.mapToken = null; G.lvl = null; show(null); setHud('map'); updateMapBar();
+    G.mode = 'map'; G.mapToken = null; G.lvl = null; fxWipe(VW / 2, VH / 2); show(null); setHud('map'); updateMapBar();
     Sfx.music('map');
   }
   function updateMapBar() {
@@ -212,7 +212,12 @@ const UI = (() => {
     else if (r.stars.every(Boolean)) note = 'Alle drei gefunden – toll!';
     if (!r.saveOk) note += ' (Speichern im Browser hat nicht geklappt – bitte exportieren!)';
     $('resNote').textContent = note;
+    const hasNext = !r.ending && G.levelIndex + 1 < LEVELS.length;
+    $('btnResLevel').classList.toggle('hidden', !hasNext);
+    $('btnResNext').textContent = hasNext ? '🗺️ Karte' : 'Weiter ➜';
+    $('btnResNext').classList.toggle('big', !hasNext);
     show('scrResults');
+    setTimeout(() => { if (G.mode === 'results') (hasNext ? $('btnResLevel') : $('btnResNext')).focus(); }, 1500);
     updateMapBar();
   }
   function resultsNext() {
@@ -285,6 +290,7 @@ const UI = (() => {
     on('btnPSpeech', () => { settings.speech = !settings.speech; applySettings(); });
 
     on('btnResNext', resultsNext);
+    on('btnResLevel', () => { Sfx.play('select'); show(null); startLevel(G.mapSel); });
     on('btnResAgain', () => { show(null); startLevel(G.levelIndex); });
     on('btnEndMap', goMap);
 

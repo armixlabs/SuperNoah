@@ -218,7 +218,7 @@ function startLevel(idx) {
   G.check = { x: 2 * T, y: 12 * T };
   G.player = makePlayer(G.check.x, G.check.y, levelStartPower());
   announceCarry();
-  G.cam = 0; G.mode = 'play';
+  G.cam = 0; G.mode = 'play'; fxWipe(92, 458);
   Sfx.music(G.lvl.theme);
   Sfx.speak(def.name);
   UI.onLevelStart();
@@ -272,7 +272,7 @@ function updatePlayer(dt) {
     if (p.onGround) p.coyote = 0.1;
     if (p.buffer > 0 && p.coyote > 0) {
       p.vy = -ph.jump; p.buffer = 0; p.coyote = 0; p.onGround = false; p.jumping = true; p.ride = null;
-      Sfx.play('jump');
+      Sfx.play('jump'); fxJump(p);
     }
     if (!Input.jump && p.jumping && p.vy < 0) { p.vy *= 0.5; p.jumping = false; }
     if (p.vy >= 0) p.jumping = false;
@@ -286,11 +286,13 @@ function updatePlayer(dt) {
     cv = c === '>' ? 110 : c === '<' ? -110 : 0;
   }
   p.prevBottom = p.y + p.h;
+  const fallV = p.vy, wasAir = !p.onGround;
   p.vx += cv;
   const r = moveBody(p, dt);
   if (r.wall) p.vx = 0; else p.vx -= cv;
   if (ph.swim && p.y < 6) { p.y = 6; if (p.vy < 0) p.vy = 0; }
   p.onGround = r.ground; p.ride = null;
+  if (wasAir && r.ground && fallV > 380) fxLand(p);
   for (const e of G.ents) {
     if (e.type !== 'mplat' || p.vy < 0) continue;
     if (p.x + p.w > e.x + 2 && p.x < e.x + e.w - 2 && p.prevBottom <= e.y - e.my + 8 && p.y + p.h >= e.y) {
@@ -380,6 +382,7 @@ function respawn() {
   }
   G.cam = clamp(G.player.x - VW * 0.4, 0, G.lvl.w * T - VW);
   G.mode = 'play';
+  fxWipe(G.player.x + 13 - G.cam, G.player.y + 22);
 }
 
 /* ---------------- Kisten und Steine ---------------- */
@@ -795,7 +798,7 @@ function updEntity(e, dt) {
     case 'check':
       if (!e.active && overlap(p, e)) {
         e.active = true; G.check = { x: e.x, y: e.y + e.h }; p.hearts = 3;
-        Sfx.play('check'); burst(e.x + 20, e.y + 10, 14, ['#ffeb3b', '#fff', '#81c784'], { kind: 'star' });
+        Sfx.play('check'); floatText(e.x + 20, e.y - 8, 'Gespeichert!', '#c8f7c5'); burst(e.x + 20, e.y + 10, 14, ['#ffeb3b', '#fff', '#81c784'], { kind: 'star' });
       }
       break;
     case 'jelly':
@@ -900,7 +903,8 @@ function finishLevel() {
 /* ---------------- Kamera ---------------- */
 function updateCamera(dt) {
   const p = G.player, maxCam = G.lvl.w * T - VW;
-  let target = p.x + p.w / 2 - VW * 0.4;
+  FX.look += (p.facing * 46 - FX.look) * Math.min(1, dt * 1.4);
+  let target = p.x + p.w / 2 - VW * 0.4 + FX.look;
   if (G.lock != null) target = G.lock;
   target = clamp(target, 0, maxCam);
   G.cam += (target - G.cam) * Math.min(1, dt * (G.lock != null ? 5 : 10));
@@ -938,7 +942,7 @@ function drawParticles(c) {
     const a = Math.max(0, Math.min(1, q.life / (q.max || 1) * 1.5));
     c.globalAlpha = a;
     if (q.kind === 'text') {
-      c.font = 'bold 20px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+      c.font = 'bold 20px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
       c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillText(q.text, q.x + 2, q.y + 2);
       c.fillStyle = q.col; c.fillText(q.text, q.x, q.y);
     } else if (q.kind === 'coin') drawCoin(c, q.x, q.y, G.t * 4);
@@ -959,6 +963,7 @@ function drawGame(c) {
   drawBackground(c, theme, cam, t);
   drawTiles(c, lvl, cam, t);
   c.save(); c.translate(-cam, 0);
+  drawShadows(c, cam);
   const vis = (e, m = 120) => e.x + e.w > cam - m && e.x < cam + VW + m;
   const order = ['goal', 'check', 'sign', 'spring', 'mplat', 'laser', 'coin', 'star', 'item', 'fire', 'urchin', 'jumper', 'walker', 'spiky', 'flyer', 'jelly', 'boss', 'meteor'];
   for (const type of order) {
@@ -990,10 +995,12 @@ function drawGame(c) {
   const p = G.player;
   if (p.visible && !(p.inv > 0 && G.mode === 'play' && Math.floor(G.t * 15) % 2)) {
     const s = Store.current();
+    c.save(); fxSquash(c, p);
     drawNoah(c, p.x + p.w / 2, p.y + p.h, {
       outfit: s ? s.outfit : 'feuerwehr', power: p.power, facing: p.facing, run: p.run, tool: toolOf(theme), swing: p.swing > 0 ? p.swing / 0.24 : 0,
       moving: Math.abs(p.vx) > 20, air: !p.onGround, t, rot: G.mode === 'dying' && G.dieReason !== 'fall' ? p.rot : 0,
     });
+    c.restore();
   }
   // Wasser und Geschosse
   for (const d of G.drops) {
@@ -1016,10 +1023,10 @@ function drawGame(c) {
   drawHUD(c, G);
   if (G.mode === 'dying' && G.dyingT > 0.4) {
     c.globalAlpha = Math.min(1, (G.dyingT - 0.4) * 3);
-    c.font = 'bold 54px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+    c.font = 'bold 54px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
     c.fillStyle = 'rgba(0,0,0,0.4)'; c.fillText('Hoppla!', VW / 2 + 3, VH / 2 + 3);
     c.fillStyle = '#fff'; c.fillText('Hoppla!', VW / 2, VH / 2);
-    c.font = 'bold 24px "Arial Rounded MT Bold", Arial, sans-serif';
+    c.font = 'bold 24px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
     c.fillText('Nochmal probieren!', VW / 2, VH / 2 + 40);
     c.globalAlpha = 1;
   }
@@ -1131,6 +1138,7 @@ function frame(now) {
     if (G.mode === 'title') drawTitleScene(ctx, dt);
     else if (G.mode === 'map' || (G.mode === 'menu' && !G.lvl)) drawMap(ctx, G.t, Store.current(), G.mapSel, G.mapToken || MAP_NODES[G.mapSel]);
     else if (G.lvl) drawGame(ctx);
+    fxOverlay(ctx, dt);
   } catch (err) { console.error(err); }
 }
 function updParticlesSafe(dt) { if (G.lvl) for (const q of G.parts) if (q.kind === 'confetti') { q.life -= dt; q.vy += q.g * dt; q.x += q.vx * dt; q.y += q.vy * dt; } }

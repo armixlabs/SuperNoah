@@ -485,7 +485,7 @@ function drawMapOld(c, t, save, sel, tokenPos) {
     const row = Math.floor(i / 3), col = row === 0 ? i : 5 - i;
     const unlocked = Store.isUnlocked(save, i * 3);
     const lx = col * 320 + 16, ly = row === 0 ? 58 : MAP_ROW_H + 10;
-    c.font = 'bold 19px "Arial Rounded MT Bold", Arial, sans-serif';
+    c.font = 'bold 19px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
     const tw = c.measureText(w.name).width + 28;
     c.fillStyle = 'rgba(0,0,0,0.4)'; rr(c, lx, ly, tw, 30, 15); c.fill();
     c.fillStyle = unlocked ? '#fff' : 'rgba(255,255,255,0.5)';
@@ -514,16 +514,16 @@ function drawMapOld(c, t, save, sel, tokenPos) {
     if (!unlocked) {
       c.fillStyle = '#eee'; rr(c, x - 8, y - 3, 16, 12, 3); c.fill();
       c.strokeStyle = '#eee'; c.lineWidth = 3; c.beginPath(); c.arc(x, y - 4, 5, Math.PI, 0); c.stroke();
-    } else if (L.boss) { c.font = 'bold 13px "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText('BOSS', x, y + 5); }
-    else { c.font = 'bold 16px "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText(L.id, x, y + 6); }
+    } else if (L.boss) { c.font = 'bold 13px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText('BOSS', x, y + 5); }
+    else { c.font = 'bold 16px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.fillText(L.id, x, y + 6); }
     if (unlocked) for (let k = 0; k < 3; k++) drawCollectIcon(c, theme, x - 17 + k * 17, y + 36, 0.48, t, !(rec && rec.stars[k]));
   });
   if (tokenPos) drawNoah(c, tokenPos[0], tokenPos[1] - 22 - Math.abs(Math.sin(t * 4)) * 5, { outfit: save ? save.outfit : 'feuerwehr', power: 'helmet', facing: 1, t, scale: 0.95 });
   // Infotafel
   const L = LEVELS[sel];
   c.fillStyle = 'rgba(0,0,0,0.55)'; rr(c, VW / 2 - 250, 488, 500, 58, 20); c.fill();
-  c.fillStyle = '#ffd54f'; c.font = 'bold 17px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+  c.fillStyle = '#ffd54f'; c.font = 'bold 17px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
   c.fillText(WORLDS[L.world].name + ' · Level ' + L.id, VW / 2, 510);
-  c.fillStyle = '#fff'; c.font = 'bold 21px "Arial Rounded MT Bold", Arial, sans-serif';
+  c.fillStyle = '#fff'; c.font = 'bold 21px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
   c.fillText(L.name, VW / 2, 535);
 }

@@ -622,7 +622,7 @@ function drawCheck(c, e, theme, t) {
   for (let i = 0; i <= 8; i++) c.lineTo(px + 4 + i * 4, by - 76 + Math.sin(t * 6 + i * 0.7) * (e.active ? 3 : 1));
   for (let i = 8; i >= 0; i--) c.lineTo(px + 4 + i * 4, by - 52 + Math.sin(t * 6 + i * 0.7) * (e.active ? 3 : 1));
   c.closePath(); c.fill();
-  c.fillStyle = '#fff'; c.font = 'bold 15px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+  c.fillStyle = '#fff'; c.font = 'bold 15px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
   c.fillText('N', px + 20, by - 58);
 }
 
@@ -631,7 +631,7 @@ function drawSign(c, e) {
   c.fillStyle = '#8d6e47'; c.fillRect(cx - 3, by - 20, 6, 20);
   c.fillStyle = '#a1785a'; rr(c, cx - 18, by - 42, 36, 26, 5); c.fill();
   c.strokeStyle = '#6b4f33'; c.lineWidth = 2.5; rr(c, cx - 18, by - 42, 36, 26, 5); c.stroke();
-  c.fillStyle = '#fff'; c.font = 'bold 20px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+  c.fillStyle = '#fff'; c.font = 'bold 20px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
   c.fillText('!', cx, by - 22);
 }
 
@@ -674,7 +674,7 @@ function drawGoal(c, e, theme, t, anim) {
     c.fillStyle = blink ? '#90caf9' : '#2196f3'; rr(c, x + 128, by - 92, 12, 10, 3); c.fill();
     c.fillStyle = '#ffd54f'; rr(c, x + 140, by - 34, 10, 8, 2); c.fill();
     [x + 30, x + 120].forEach(wx => { circle(c, wx, by - 12, 13, '#222'); circle(c, wx, by - 12, 6, '#bdbdbd'); });
-    c.fillStyle = '#fff'; c.font = 'bold 13px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+    c.fillStyle = '#fff'; c.font = 'bold 13px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
     c.fillText('112', x + 50, by - 46);
     if (anim > 0.4 && anim < 1.2) {
       // Noah sitzt schon drin
@@ -694,7 +694,7 @@ function drawGoal(c, e, theme, t, anim) {
     circle(c, x, y - 90, 15, '#607d8b'); circle(c, x, y - 90, 11, '#81d4fa');
     if (anim > 0.4) circle(c, x, y - 90, 7, '#ffd3ad');
     c.fillStyle = 'rgba(255,255,255,0.6)'; ellipse(c, x - 4, y - 94, 4, 3); c.fill();
-    c.fillStyle = '#e53935'; c.font = 'bold 14px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('NOAH', x, y - 52);
+    c.fillStyle = '#e53935'; c.font = 'bold 14px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.fillText('NOAH', x, y - 52);
   }
 }
 
@@ -776,7 +776,7 @@ function drawHUD(c, G) {
   const mx = p.power !== 'none' ? 190 : 140;
   c.fillStyle = 'rgba(0,0,0,0.25)'; rr(c, mx, 10, 96, 40, 12); c.fill();
   drawCoin(c, mx + 22, 30, 0);
-  c.font = 'bold 24px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'left';
+  c.font = 'bold 24px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'left';
   c.fillStyle = '#fff'; c.fillText(String(G.coins), mx + 40, 39);
   // Sammelsachen
   for (let i = 0; i < 3; i++) drawCollectIcon(c, theme, VW - 200 + i * 40, 30, 0.95, G.t, !G.stars[i]);
@@ -785,7 +785,7 @@ function drawHUD(c, G) {
   if (boss && boss.active && boss.state !== 'dead') {
     c.fillStyle = 'rgba(0,0,0,0.4)'; rr(c, VW / 2 - 150, 16, 300, 26, 13); c.fill();
     c.fillStyle = '#ff5252'; rr(c, VW / 2 - 146, 20, 292 * Math.max(0, boss.hp / boss.maxHp), 18, 9); c.fill();
-    c.fillStyle = '#fff'; c.font = 'bold 15px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+    c.fillStyle = '#fff'; c.font = 'bold 15px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
     c.fillText(boss.name, VW / 2, 35);
   }
   // Levelname
@@ -793,9 +793,9 @@ function drawHUD(c, G) {
     const a = Math.min(1, G.bannerT);
     c.globalAlpha = a;
     c.fillStyle = 'rgba(0,0,0,0.45)'; rr(c, VW / 2 - 260, 120, 520, 90, 24); c.fill();
-    c.fillStyle = '#ffd54f'; c.font = 'bold 22px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
+    c.fillStyle = '#ffd54f'; c.font = 'bold 22px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center';
     c.fillText('Level ' + G.lvl.id, VW / 2, 155);
-    c.fillStyle = '#fff'; c.font = 'bold 32px "Arial Rounded MT Bold", Arial, sans-serif';
+    c.fillStyle = '#fff'; c.font = 'bold 32px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
     c.fillText(G.lvl.def.name, VW / 2, 193);
     c.globalAlpha = 1;
   }
@@ -812,7 +812,7 @@ function wrapText(c, text, maxW) {
 }
 
 function drawBubble(c, text, x, y) {
-  c.font = 'bold 18px "Arial Rounded MT Bold", Arial, sans-serif';
+  c.font = 'bold 18px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", Arial, sans-serif';
   const lines = wrapText(c, text, 300);
   const w = Math.min(330, Math.max(...lines.map(l => c.measureText(l).width)) + 30), h = lines.length * 24 + 20;
   let bx = Math.max(10, Math.min(VW - w - 10, x - w / 2)), byy = y - h - 16;
